@@ -72,7 +72,7 @@ export async function handleToolCall(name: string, args: any, xaiClient: XAIClie
     }
 
     const response = await xaiClient.xSearch(args as XSearchParameters);
-    return formatXAIResponse(response);
+    return formatXAIResponse(response, xaiClient.authMethod);
   }
 
   if (name === 'x_user_search') {
@@ -83,13 +83,13 @@ export async function handleToolCall(name: string, args: any, xaiClient: XAIClie
     };
 
     const response = await xaiClient.xSearch(searchParams);
-    return formatXAIResponse(response);
+    return formatXAIResponse(response, xaiClient.authMethod);
   }
 
   throw new Error(`Tool not found: ${name}`);
 }
 
-function formatXAIResponse(response: XAIResponse) {
+function formatXAIResponse(response: XAIResponse, authLabel: string) {
   const messageOutput = response.output?.find((o: any) => o.type === 'message');
   const textContent = messageOutput?.content?.[0]?.text || 'No results found.';
 
@@ -103,8 +103,20 @@ function formatXAIResponse(response: XAIResponse) {
       title: a.title,
     }));
 
+  const usage = response.usage;
+  const diagParts = [`認証: ${authLabel}`];
+  if (usage?.num_server_side_tools_used !== undefined) {
+    diagParts.push(`x_search: ${usage.num_server_side_tools_used}回`);
+  }
+  if (usage?.cost_in_usd_ticks !== undefined) {
+    const costUsd = usage.cost_in_usd_ticks / 10_000_000_000;
+    const costYen = Math.round(costUsd * 150 * 100) / 100;
+    diagParts.push(`費用: 約${costYen}円`);
+  }
+  const diag = `\n\n---\n${diagParts.join(' | ')}`;
+
   return {
-    content: [{ type: 'text', text: textContent }],
+    content: [{ type: 'text', text: textContent + diag }],
     citations,
   };
 }

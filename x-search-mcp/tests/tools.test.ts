@@ -5,6 +5,7 @@ import { XAIClient } from '../src/xai.js';
 vi.mock('../src/xai.js', () => {
   const XAIClientMock = vi.fn();
   XAIClientMock.prototype.xSearch = vi.fn();
+  Object.defineProperty(XAIClientMock.prototype, 'authMethod', { get: () => 'XAI_API_KEY', configurable: true });
   return {
     XAIClient: XAIClientMock,
   };
@@ -40,7 +41,8 @@ describe('handleToolCall', () => {
     const result = await handleToolCall('x_search', args, mockXAIClient);
 
     expect(mockXAIClient.xSearch).toHaveBeenCalledWith(args);
-    expect(result.content[0].text).toBe('Grok search result summary');
+    expect(result.content[0].text).toContain('Grok search result summary');
+    expect(result.content[0].text).toContain('認証: XAI_API_KEY');
     expect(result.citations).toHaveLength(1);
     expect(result.citations[0].url).toBe('https://x.com/1');
   });
@@ -76,7 +78,8 @@ describe('handleToolCall', () => {
       query: 'from:elonmusk',
       allowed_x_handles: ['elonmusk']
     });
-    expect(result.content[0].text).toBe('User profile and posts');
+    expect(result.content[0].text).toContain('User profile and posts');
+    expect(result.content[0].text).toContain('認証: XAI_API_KEY');
   });
 
   it('should throw error for unknown tool', async () => {

@@ -13,6 +13,14 @@ export interface XSearchParameters {
   enable_video_understanding?: boolean;
 }
 
+export interface Usage {
+  input_tokens: number;
+  output_tokens: number;
+  total_tokens: number;
+  cost_in_usd_ticks?: number;
+  num_server_side_tools_used?: number;
+}
+
 export interface XAIResponse {
   output: Array<{
     id: string;
@@ -34,6 +42,7 @@ export interface XAIResponse {
       text: string;
     }>;
   }>;
+  usage?: Usage;
 }
 
 export class XAIClient {
@@ -51,6 +60,10 @@ export class XAIClient {
         'Authentication required: set XAI_API_KEY (pay-as-you-go) or XAI_OAUTH_TOKEN (X Premium OAuth)',
       );
     }
+  }
+
+  get authMethod(): string {
+    return this.authLabel;
   }
 
   async xSearch(params: XSearchParameters): Promise<XAIResponse> {
