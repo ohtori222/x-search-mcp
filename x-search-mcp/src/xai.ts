@@ -37,15 +37,19 @@ export interface XAIResponse {
 }
 
 export class XAIClient {
-  private apiKey: string;
+  private token: string;
   private model: string;
+  private authLabel: string;
 
   constructor() {
-    this.apiKey = process.env.XAI_API_KEY || '';
+    this.token = process.env.XAI_OAUTH_TOKEN || process.env.XAI_API_KEY || '';
     this.model = process.env.XAI_MODEL || 'grok-4.3';
+    this.authLabel = process.env.XAI_OAUTH_TOKEN ? 'XAI_OAUTH_TOKEN' : 'XAI_API_KEY';
 
-    if (!this.apiKey) {
-      throw new Error('XAI_API_KEY environment variable is required');
+    if (!this.token) {
+      throw new Error(
+        'Authentication required: set XAI_API_KEY (pay-as-you-go) or XAI_OAUTH_TOKEN (X Premium OAuth)',
+      );
     }
   }
 
@@ -72,7 +76,7 @@ export class XAIClient {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${this.apiKey}`,
+        'Authorization': `Bearer ${this.token}`,
       },
       body: JSON.stringify(requestBody),
       signal: AbortSignal.timeout(30_000),
@@ -80,7 +84,7 @@ export class XAIClient {
 
     if (!response.ok) {
       const errorBody = await response.text();
-      throw new Error(`xAI API error (${response.status}): ${errorBody}`);
+      throw new Error(`xAI API error (${response.status}) [auth:${this.authLabel}]: ${errorBody}`);
     }
 
     return (await response.json()) as XAIResponse;
