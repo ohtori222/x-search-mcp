@@ -70,6 +70,7 @@ export class XAIClient {
         'Authorization': `Bearer ${this.apiKey}`,
       },
       body: JSON.stringify(requestBody),
+      signal: AbortSignal.timeout(30_000),
     });
 
     if (!response.ok) {
