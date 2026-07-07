@@ -13,21 +13,27 @@ export interface XSearchParameters {
   enable_video_understanding?: boolean;
 }
 
-export interface Citation {
-  url: string;
-  text: string;
-  author: string;
-  date: string;
-}
-
 export interface XAIResponse {
   output: Array<{
-    content: Array<{
+    id: string;
+    type: string;
+    status: string;
+    content?: Array<{
+      type: string;
+      text: string;
+      annotations?: Array<{
+        type: string;
+        url: string;
+        start_index: number;
+        end_index: number;
+        title: string;
+      }>;
+    }>;
+    summary?: Array<{
       type: string;
       text: string;
     }>;
   }>;
-  citations?: Citation[];
 }
 
 export class XAIClient {
@@ -60,7 +66,6 @@ export class XAIClient {
           ...toolParams,
         },
       ],
-      include: ['citations'],
     };
 
     const response = await fetch('https://api.x.ai/v1/responses', {

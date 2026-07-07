@@ -90,23 +90,21 @@ export async function handleToolCall(name: string, args: any, xaiClient: XAIClie
 }
 
 function formatXAIResponse(response: XAIResponse) {
-  const textContent = response.output?.[0]?.content?.[0]?.text || 'No results found.';
-  const content = [
-    {
-      type: 'text',
-      text: textContent,
-    },
-  ];
+  const messageOutput = response.output?.find((o: any) => o.type === 'message');
+  const textContent = messageOutput?.content?.[0]?.text || 'No results found.';
 
-  const citations = (response.citations || []).map((cite: any) => ({
-    url: cite.url,
-    text: cite.text,
-    author: cite.author,
-    date: cite.date,
-  }));
+  const annotations = messageOutput?.content?.[0]?.annotations || [];
+  const citations = annotations
+    .filter((a: any) => a.type === 'url_citation')
+    .map((a: any) => ({
+      url: a.url,
+      start_index: a.start_index,
+      end_index: a.end_index,
+      title: a.title,
+    }));
 
   return {
-    content,
+    content: [{ type: 'text', text: textContent }],
     citations,
   };
 }

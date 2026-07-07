@@ -20,12 +20,19 @@ describe('handleToolCall', () => {
 
   it('should handle x_search tool call correctly', async () => {
     const mockResponse = {
-      output: [{
-        content: [{ type: 'text', text: 'Grok search result summary' }]
-      }],
-      citations: [
-        { url: 'https://x.com/1', text: 'post 1', author: '@user1', date: '2025-01-01' }
-      ]
+      output: [
+        { id: 'rs_1', type: 'reasoning', status: 'completed', summary: [{ type: 'summary_text', text: '...' }] },
+        {
+          id: 'msg_1', type: 'message', status: 'completed',
+          content: [{
+            type: 'output_text',
+            text: 'Grok search result summary',
+            annotations: [
+              { type: 'url_citation', url: 'https://x.com/1', start_index: 0, end_index: 10, title: '1' },
+            ],
+          }],
+        },
+      ],
     };
     mockXAIClient.xSearch.mockResolvedValue(mockResponse);
 
@@ -52,10 +59,13 @@ describe('handleToolCall', () => {
 
   it('should handle x_user_search tool call correctly', async () => {
     const mockResponse = {
-      output: [{
-        content: [{ type: 'text', text: 'User profile and posts' }]
-      }],
-      citations: []
+      output: [
+        { id: 'rs_1', type: 'reasoning', status: 'completed', summary: [{ type: 'summary_text', text: '...' }] },
+        {
+          id: 'msg_1', type: 'message', status: 'completed',
+          content: [{ type: 'output_text', text: 'User profile and posts' }],
+        },
+      ],
     };
     mockXAIClient.xSearch.mockResolvedValue(mockResponse);
 
