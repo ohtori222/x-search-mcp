@@ -45,6 +45,26 @@
 - bash 実行時は `description`（5-10語の説明）と `hasSideEffect`（書き込み/状態変更の有無）を必ず設定する。
 - タスク完了時は必ずコミット＆プッシュをセットで行う。
 
+## x_search MCP サーバーの使用ルール
+
+このプロジェクトは xAI の Responses API（x_search ツール）を MCP サーバーとしてラップしている。
+bash から直接 MCP サーバーを起動して検索する方法：
+
+```
+printf '{"jsonrpc":"2.0","id":1,"method":"initialize"}\n{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"x_search","arguments":{"query":"検索クエリ","max_results":5}}}\n' | timeout 30 node dist/index.js 2>/dev/null | python3 -c "import json,sys
+for line in sys.stdin:
+    try:
+        d=json.loads(line)
+        if 'result' in d and 'content' in d['result']:
+            print(d['result']['content'][0]['text'])
+    except: pass"
+```
+
+### 絶対ルール
+- **x_search を実行したら、結果の全文を必ずユーザーにメッセージとして貼ること。** 「要約して伝える」「結果をファイルに書く」だけではダメ。ユーザーは検索結果を直接見たい。
+- **ユーザーに「結果を貼って」と言われたら、再実行せずに直近の実行結果を使うこと。** 無駄なAPI呼び出し（＝コスト）を発生させてはいけない。
+- 認証方式は `XAI_API_KEY`（従量課金）と `XAI_OAUTH_TOKEN`（X Premium）の2種類をサポート。優先順位は OAuth → APIキー。
+
 ## コーディングガイドライン
 
 ### 0. 実装前に考える（Think Before Coding）
