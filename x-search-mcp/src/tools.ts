@@ -1,4 +1,4 @@
-import { XAIClient, XSearchParameters } from './xai.js';
+import { XAIClient, XSearchParameters, XAIResponse } from './xai.js';
 
 export const TOOL_SCHEMAS = [
   {
@@ -89,7 +89,7 @@ export async function handleToolCall(name: string, args: any, xaiClient: XAIClie
   throw new Error(`Tool not found: ${name}`);
 }
 
-function formatXAIResponse(response: any) {
+function formatXAIResponse(response: XAIResponse) {
   const textContent = response.output?.[0]?.content?.[0]?.text || 'No results found.';
   const content = [
     {
